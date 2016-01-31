@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Neighborhood Map Project</title>
+
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+    <!-- Custom styles for this template -->
+    <link href="css/style.css" rel="stylesheet">
+</head>
+
+<body>
+
+<nav>
+    <ul class="list-unstyled main-menu">
+        <li class="text-right"><a href="#" id="nav-close">X</a></li>
+    </ul>
+        <div class="form-group">
+        <input data-bind="textInput: filterString" class="form-control" placeholder="Search">
+    </div>
+
+    <ul class="list-unstyled main-menu" data-bind="foreach: filterMarkers">
+        <li><a href="#" data-bind="text: title, click: $parent.isVisibleToggle"><span class="icon"></span></a></li>
+    </ul>
+
+</nav>
+
+<div class="navbar navbar-inverse navbar-fixed-top">
+    <a class="navbar-brand" href="#">Neighborhood Map Project</a>
+    <div class="navbar-header pull-right">
+        <a id="nav-expander" class="nav-expander fixed">
+            SEARCH &nbsp;<i class="fa fa-bars fa-lg white"></i>
+        </a>
+    </div>
+</div>
+
+<div id="map"></div>
+
+
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+
+
+<script src="https://ajax.aspnetcdn.com/ajax/knockout/knockout-3.3.0.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+<script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCv0YOUXme1L-RbaIab36K-i-3QJUJlKnI&callback=init">
+</script>
+<script src="js/bindingHandlers.js"></script>
+<script src="js/app.js"></script>
+
+
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+
+</body>
+</html>

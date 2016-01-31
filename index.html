@@ -24,7 +24,7 @@
     </div>
 
     <ul class="list-unstyled main-menu" data-bind="foreach: filterMarkers">
-        <li><a href="#" data-bind="text: title, click: $parent.isVisibleToggle"><span class="icon"></span></a></li>
+        <li><a href="#" data-bind="text: title, click: $parent.openInfoWindow"><span class="icon"></span></a></li>
     </ul>
 
 </nav>
@@ -41,6 +41,15 @@
 <div id="map"></div>
 
 
+<div id="info-window-template" class="info-window">
+    <h1 data-bind="text: selected().title"></h1>
+    <img data-bind="attr: { src: yelpData.img }">
+    <img data-bind="attr: { src: yelpData.stars }">
+    <a data-bind="attr: { href: yelpData.url }">More on Yelp...</a>
+</div>
+
+
+
 <!-- Bootstrap core JavaScript
 ================================================== -->
 <!-- Placed at the end of the document so the pages load faster -->
@@ -50,6 +59,7 @@
 
 <script src="https://ajax.aspnetcdn.com/ajax/knockout/knockout-3.3.0.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+<script src="js/lib/oauth-signature.min.js"></script>
 <script async defer
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCv0YOUXme1L-RbaIab36K-i-3QJUJlKnI&callback=init">
 </script>

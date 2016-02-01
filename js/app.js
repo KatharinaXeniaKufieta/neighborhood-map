@@ -1,7 +1,6 @@
 // Globals
 var infoWindow,
-    $node = $('#info-window-template');
-
+    $infoWindowContent = $('#info-window-template');
 
 // Make the menu
 $(document).ready(function(){
@@ -18,6 +17,7 @@ $(document).ready(function(){
 });
 
 var initMap = function() {
+    // Make the map
     map = new google.maps.Map(document.getElementById('map'), {
         center: {
             lat: 36.16,
@@ -26,16 +26,95 @@ var initMap = function() {
         zoom: 10
     });
 
+    // Make the info window
     infoWindow = new google.maps.InfoWindow({
-        content: $node[0]
+        // Content is a hidden div in the DOM to easily manage KO bindings
+        content: $infoWindowContent[0]
     });
 
     // When closing info window append content to body to retain ko bindings
     google.maps.event.addListener(infoWindow, "closeclick", function () {
-        $("body").append($node);
+        $("body").append($infoWindowContent);
     });
 };
 
+// OpenWeather API call. Passes in viewModel context (self).
+var weather = function(self) {
+
+    var settings = {
+        url: '//api.openweathermap.org/data/2.5/weather',
+        data: {
+            id: '5506956',
+            units: 'imperial',
+            APPID: '868189a81b76adbe0632ec5c77508e39'
+        },
+        dataType: 'json',
+        success: function(result) {
+            self.weatherData.temp(Math.round(result.main.temp) + 'F');
+            self.weatherData.status(result.weather[0].main);
+            self.weatherData.statusDesc(result.weather[0].description);
+            self.weatherData.windSpeed(result.wind.speed);
+            self.weatherData.humidity(result.main.humidity);
+        },
+        fail: function(error) {
+            console.log(error);
+        }
+    };
+
+    // Send request
+    $.ajax(settings);
+};
+
+// Yelp API call. Passes is item to make call for.
+var yelp = function(self, item) {
+
+    // clear previous data
+    self.yelpData.img('');
+    self.yelpData.stars('');
+    self.yelpData.url('');
+
+    function nonce_generate() {
+        return (Math.floor(Math.random() * 1e12).toString());
+    }
+
+    var yelp_url = 'https://api.yelp.com/v2/search';
+
+    var parameters = {
+        oauth_consumer_key: 'TaoAvaw-MM7bqlB9PRy8Iw',
+        oauth_token: 'NPYotgIFRKcr9Ghi1QXHW4iT-eHiYQOz',
+        oauth_nonce: nonce_generate(),
+        oauth_timestamp: Math.floor(Date.now() / 1000),
+        oauth_signature_method: 'HMAC-SHA1',
+        oauth_version: '1.0',
+        location: 'Las Vegas',
+        term: item.title(),
+        limit: 1,
+        callback: 'cb'
+    };
+
+    parameters.oauth_signature = oauthSignature.generate('GET', yelp_url, parameters, 'VY0siP_qYDDY3PHld3ncpMcynZs', 'E77kPAX3kUMzjXeHZsXZupO9ApE');
+
+    var settings = {
+        url: yelp_url,
+        data: parameters,
+        cache: true,
+        dataType: 'jsonp',
+        success: function (results) {
+            // Set new data values
+            self.yelpData.img(results.businesses[0].image_url);
+            self.yelpData.stars(results.businesses[0].rating_img_url_small);
+            self.yelpData.url(results.businesses[0].url);
+        },
+        fail: function () {
+            console.log('fail');
+            // Do stuff on fail
+        }
+    };
+
+// Send AJAX query via jQuery library.
+    $.ajax(settings);
+
+};
 
 
 // Data model
@@ -154,6 +233,8 @@ var markerData = [
 var viewModel = function() {
     var self = this;
 
+    self.flightArray = ko.observableArray([]);
+
     // Build markerPins array to track data
     self.markerPins = ko.observableArray([]);
     markerData.forEach(function(marker) {
@@ -176,6 +257,17 @@ var viewModel = function() {
         }
     };
 
+    // Set weather info
+    self.weatherData = {
+        temp: ko.observable(),
+        status: ko.observable(),
+        statusDesc: ko.observable(),
+        windSpeed: ko.observable(),
+        humidity: ko.observable()
+    };
+
+
+
     // Info window properties via APIs
     self.selected = ko.observable({}); // Current selected marker
     self.yelpData = {
@@ -185,11 +277,20 @@ var viewModel = function() {
     };
 
 
+
+
+
     // Info window controller
     self.openInfoWindow = function(item) {
-        self.selected(item); // set selected marker
 
-        self.yelp(item); // call Yelp API
+        // Animate marker for small period
+        item.marker.setAnimation(google.maps.Animation.BOUNCE);
+        setTimeout(function() {
+            item.marker.setAnimation(null);
+        }, 1500);
+
+        self.selected(item); // set selected marker
+        yelp(self, item); // call Yelp API
         infoWindow.open(map, item.marker);
     };
 
@@ -198,7 +299,7 @@ var viewModel = function() {
     self.filterMarkers = ko.computed(function() {
 
         // Close info window and append to body to keep ko bindings intact when calling this search function
-        $("body").append($node);
+        $("body").append($infoWindowContent);
         infoWindow.close();
 
         // Clear out all markers when this function is called
@@ -232,84 +333,53 @@ var viewModel = function() {
         }
     });
 
-    self.yelp = function(item) {
+    // Get weather
+    weather(self);
 
-        // clear previous data
-        self.yelpData.img('');
-        self.yelpData.stars('');
-        self.yelpData.url('');
 
-        function nonce_generate() {
-            return (Math.floor(Math.random() * 1e12).toString());
-        }
-
-        var yelp_url = 'https://api.yelp.com/v2/search';
-
-        var parameters = {
-            oauth_consumer_key: 'TaoAvaw-MM7bqlB9PRy8Iw',
-            oauth_token: 'NPYotgIFRKcr9Ghi1QXHW4iT-eHiYQOz',
-            oauth_nonce: nonce_generate(),
-            oauth_timestamp: Math.floor(Date.now() / 1000),
-            oauth_signature_method: 'HMAC-SHA1',
-            oauth_version: '1.0',
-            location: 'Las Vegas',
-            term: item.title(),
-            limit: 1,
-            callback: 'cb'              // This is crucial to include for jsonp implementation in AJAX or else the oauth-signature will be wrong.
-        };
-
-        parameters.oauth_signature = oauthSignature.generate('GET', yelp_url, parameters, 'VY0siP_qYDDY3PHld3ncpMcynZs', 'E77kPAX3kUMzjXeHZsXZupO9ApE');
-
+    self.flightModeOn = function() {
+        var url ='https://api.flightstats.com/flex/flightstatus/rest/v2/jsonp/flightsNear/36.4/-115.5/36.0/-114.9?appId=92c5ecde&appKey=5d44b9913dfff04d98301c8033c6cc76&maxFlights=15';
         var settings = {
-            url: yelp_url,
-            data: parameters,
-            cache: true,                // This is crucial to include as well to prevent jQuery from adding on a cache-buster parameter "_=23489489749837", invalidating our oauth-signature
+            url: url,
             dataType: 'jsonp',
-            success: function (results) {
-                // Set new data values
-                self.yelpData.img(results.businesses[0].image_url);
-                self.yelpData.stars(results.businesses[0].rating_img_url_small);
-                self.yelpData.url(results.businesses[0].url);
-            },
-            fail: function () {
-                console.log('fail');
-                // Do stuff on fail
-            }
-        };
-
-// Send AJAX query via jQuery library.
-        $.ajax(settings);
-
-    };
-
-    self.temp = ko.observable();
-
-    self.weather = function() {
-
-        var settings = {
-            url: '//api.openweathermap.org/data/2.5/weather',
-            data: {
-                id: '5506956',
-                units: 'imperial',
-                APPID: '868189a81b76adbe0632ec5c77508e39'
-            },
-            dataType: 'json',
+            jsonpCallback: 'cb',
             success: function(result) {
-                self.temp(result.main.temp + 'F');
-                console.log(result);
+
+                // Clear flight data and remove markers
+                for (var i = 0; i < self.flightArray().length; i++) {
+                    self.flightArray()[i].setMap(null);
+                }
+                self.flightArray([]);
+
+                // Make each marker
+                var image = 'img/plane.png';
+                result.flightPositions.forEach(function(item) {
+                    self.flightArray.push(new google.maps.Marker({
+                        position: {lat: item.positions[0].lat, lng: item.positions[0].lon},
+                        map: map,
+                        icon: image
+                    }))
+                });
             },
-            fail: function(error) {
-                console.log(error);
+            fail: function() {
+                console.log('Fail');
             }
         };
 
         $.ajax(settings);
     };
-    self.weather();
+
+    // Turn each marker view off then clear array
+    self.flightModeOff = function() {
+        for (var i = 0; i < self.flightArray().length; i++) {
+            self.flightArray()[i].setMap(null);
+        }
+        self.flightArray([]);
+    };
 
 };
 
-// Marker class
+// Marker class that makes our map markers and stores their data
 var Marker = function(title, lat, lng, blurb) {
 
     var self = this;
@@ -339,6 +409,7 @@ var Marker = function(title, lat, lng, blurb) {
 // When google maps has loaded kick things off
 var init = function() {
     initMap();
+
 
 
     ko.applyBindings(new viewModel());

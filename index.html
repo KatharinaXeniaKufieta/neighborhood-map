@@ -13,7 +13,6 @@
     <link href="css/style.css" rel="stylesheet">
 </head>
 
-<body>
 
 <nav>
     <ul class="list-unstyled main-menu">
@@ -30,7 +29,7 @@
 </nav>
 
 <div class="navbar navbar-inverse navbar-fixed-top">
-    <a class="navbar-brand" href="#">Neighborhood Map Project</a>
+    <a class="navbar-brand" href="#" data-bind="text: temp"></a>
     <div class="navbar-header pull-right">
         <a id="nav-expander" class="nav-expander fixed">
             SEARCH &nbsp;<i class="fa fa-bars fa-lg white"></i>
@@ -41,12 +40,17 @@
 <div id="map"></div>
 
 
-<div id="info-window-template" class="info-window">
-    <h1 data-bind="text: selected().title"></h1>
-    <img data-bind="attr: { src: yelpData.img }">
+<div id="info-window-template" style="width: 250px">
+    <h3 data-bind="text: selected().title" style="background-color: red"></h3>
     <img data-bind="attr: { src: yelpData.stars }">
-    <a data-bind="attr: { href: yelpData.url }">More on Yelp...</a>
+    <a data-bind="attr: { href: yelpData.url }">View on Yelp...</a>
+    <br>
+    <img data-bind="attr: { src: yelpData.img }">
+    <span data-bind="text: selected().blurb" style="vertical-align: top"></span>
+    <p>More stuff</p>
 </div>
+
+
 
 
 

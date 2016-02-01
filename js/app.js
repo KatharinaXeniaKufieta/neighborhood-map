@@ -1,8 +1,11 @@
+// Globals
+var infoWindow,
+    $node = $('#info-window-template');
+
 
 // Make the menu
 $(document).ready(function(){
 
-    //Navigation Menu Slider
     $('#nav-expander').on('click',function(e){
         e.preventDefault();
         $('body').toggleClass('nav-expanded');
@@ -22,8 +25,20 @@ var initMap = function() {
         },
         zoom: 10
     });
+
+    infoWindow = new google.maps.InfoWindow({
+        content: $node[0]
+    });
+
+    // When closing info window append content to body to retain ko bindings
+    google.maps.event.addListener(infoWindow, "closeclick", function () {
+        $("body").append($node);
+    });
 };
 
+
+
+// Data model
 var markerData = [
     {
         name: 'Super Summer Theatre',
@@ -182,6 +197,10 @@ var viewModel = function() {
 
     self.filterMarkers = ko.computed(function() {
 
+        // Close info window and append to body to keep ko bindings intact when calling this search function
+        $("body").append($node);
+        infoWindow.close();
+
         // Clear out all markers when this function is called
         self.markerPins().forEach(function(item) {
             item.isVisible(false);
@@ -247,7 +266,7 @@ var viewModel = function() {
             cache: true,                // This is crucial to include as well to prevent jQuery from adding on a cache-buster parameter "_=23489489749837", invalidating our oauth-signature
             dataType: 'jsonp',
             success: function (results) {
-                console.log(results);
+                // Set new data values
                 self.yelpData.img(results.businesses[0].image_url);
                 self.yelpData.stars(results.businesses[0].rating_img_url_small);
                 self.yelpData.url(results.businesses[0].url);
@@ -263,11 +282,36 @@ var viewModel = function() {
 
     };
 
+    self.temp = ko.observable();
+
+    self.weather = function() {
+
+        var settings = {
+            url: '//api.openweathermap.org/data/2.5/weather',
+            data: {
+                id: '5506956',
+                units: 'imperial',
+                APPID: '868189a81b76adbe0632ec5c77508e39'
+            },
+            dataType: 'json',
+            success: function(result) {
+                self.temp(result.main.temp + 'F');
+                console.log(result);
+            },
+            fail: function(error) {
+                console.log(error);
+            }
+        };
+
+        $.ajax(settings);
+    };
+    self.weather();
+
 };
 
+// Marker class
 var Marker = function(title, lat, lng, blurb) {
 
-    // Allow marker data to be accessible via InfoWindow
     var self = this;
 
     self.title = ko.observable(title);
@@ -290,24 +334,13 @@ var Marker = function(title, lat, lng, blurb) {
             self.marker.setMap(null);
         }
     });
-
 };
 
 // When google maps has loaded kick things off
 var init = function() {
     initMap();
 
-    var $node = $('#info-window-template');
 
-    infoWindow = new google.maps.InfoWindow({
-        content: $node[0]
-    });
-
-    google.maps.event.addListener(infoWindow, "closeclick", function () {
-        //google maps will destroy this node and knockout will stop updating it
-        //add it back to the body so knockout will take care of it
-        $("body").append($node);
-    });
     ko.applyBindings(new viewModel());
 };
 

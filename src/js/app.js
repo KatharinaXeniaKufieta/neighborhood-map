@@ -126,7 +126,8 @@ var markerData = [
             lon: -115.4556288
         },
         img: '',
-        blurb: 'Test 1',
+        blurb: 'Come see Broadway shows on stage in a picturesque setting at Spring Mountain Ranch. Bring an' +
+        'umbrella if raining!',
         info: {
             indoor: false,
             events: true
@@ -138,7 +139,7 @@ var markerData = [
             lat: 36.1389592,
             lon: -115.3213893
         },
-        blurb: 'Test 2',
+        blurb: 'Bring your wallet because you will likely spend money!',
         info: {
             indoor: true,
             events: false
@@ -150,7 +151,7 @@ var markerData = [
             lat: 36.0172112,
             lon: -115.2681969
         },
-        blurb: 'Test 2',
+        blurb: 'Hike up this mini mountain, or better yet run',
         info: {
             indoor: false,
             events: false
@@ -162,7 +163,7 @@ var markerData = [
             lat: 36.1425409,
             lon: -115.1447422
         },
-        blurb: 'Test 2',
+        blurb: 'Just like home!',
         info: {
             indoor: true,
             events: false
@@ -174,7 +175,7 @@ var markerData = [
             lat: 36.0859393,
             lon: -115.0194987
         },
-        blurb: 'Test 2',
+        blurb: 'Cheer on the Rebels',
         info: {
             indoor: false,
             events: true
@@ -186,7 +187,7 @@ var markerData = [
             lat: 36.1049243,
             lon: -115.1464457
         },
-        blurb: 'Test 2',
+        blurb: 'Cheer on the other Rebels!',
         info: {
             indoor: true,
             events: true
@@ -198,7 +199,7 @@ var markerData = [
             lat: 36.1026098,
             lon: -115.179217
         },
-        blurb: 'Test 2',
+        blurb: 'Maybe, just maybe there will be a hockey team here',
         info: {
             indoor: true,
             events: true
@@ -210,7 +211,7 @@ var markerData = [
             lat: 36.1175163,
             lon: -115.1718257
         },
-        blurb: 'Test 2',
+        blurb: 'Chicken, bowling and rock & roll. What more do you want?',
         info: {
             indoor: true,
             events: true
@@ -222,7 +223,7 @@ var markerData = [
             lat: 36.1525036,
             lon: -115.1541446
         },
-        blurb: 'Test 2',
+        blurb: 'Karaoke and beer.',
         info: {
             indoor: true,
             events: false

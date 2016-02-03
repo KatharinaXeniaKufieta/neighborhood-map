@@ -55,9 +55,6 @@ var weather = function(self) {
             self.weatherData.statusDesc(result.weather[0].description);
             self.weatherData.windSpeed(result.wind.speed);
             self.weatherData.humidity(result.main.humidity);
-        },
-        fail: function(error) {
-            console.log(error);
         }
     };
 
@@ -104,10 +101,6 @@ var yelp = function(self, item) {
             self.yelpData.img(results.businesses[0].image_url);
             self.yelpData.stars(results.businesses[0].rating_img_url_small);
             self.yelpData.url(results.businesses[0].url);
-        },
-        fail: function () {
-            console.log('fail');
-            // Do stuff on fail
         }
     };
 
@@ -234,6 +227,12 @@ var markerData = [
 var viewModel = function() {
     var self = this;
 
+    // Handle errors
+    $(document).ajaxError(function( event, request, settings ) {
+        self.error('ERROR: Failed to load data');
+        console.log(request, settings.url);
+    });
+
     self.flightArray = ko.observableArray([]);
 
     // Build markerPins array to track data
@@ -268,7 +267,6 @@ var viewModel = function() {
     };
 
 
-
     // Info window properties via APIs
     self.selected = ko.observable({}); // Current selected marker
     self.yelpData = {
@@ -277,9 +275,7 @@ var viewModel = function() {
         url: ko.observable('')
     };
 
-
-
-
+    self.error = ko.observable('');
 
     // Info window controller
     self.openInfoWindow = function(item) {
@@ -361,9 +357,6 @@ var viewModel = function() {
                         icon: image
                     }))
                 });
-            },
-            fail: function() {
-                console.log('Fail');
             }
         };
 

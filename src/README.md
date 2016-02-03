@@ -11,4 +11,13 @@ Project 5-1 of the Udacity's Front-End Nanodegree
 
 ## Features
 
-Using Knockout.js for data binding and Google Maps this project incorporates several API
+Using Knockout.js for data binding and Google Maps this project incorporates several APIs to produce a map with location
+data for Las Vegas.
+
+## Requirements/dependencies
+
+- Bootstrap
+- jQuery
+- Knockout.js
+- Google Maps
+- Node/grunt for distribution

@@ -1,20 +1,5 @@
 // Globals
-var infoWindow,
-    $infoWindowContent = $('#info-window-template');
-
-// Make the menu
-$(document).ready(function(){
-
-    $('#nav-expander').on('click',function(e){
-        e.preventDefault();
-        $('body').toggleClass('nav-expanded');
-    });
-    $('#nav-close').on('click',function(e){
-        e.preventDefault();
-        $('body').removeClass('nav-expanded');
-    });
-
-});
+var infoWindow;
 
 var initMap = function() {
     // Make the map
@@ -26,16 +11,8 @@ var initMap = function() {
         zoom: 10
     });
 
-    // Make the info window
-    infoWindow = new google.maps.InfoWindow({
-        // Content is a hidden div in the DOM to easily manage KO bindings
-        content: $infoWindowContent[0]
-    });
-
-    // When closing info window append content to body to retain ko bindings
-    google.maps.event.addListener(infoWindow, "closeclick", function () {
-        $("body").append($infoWindowContent);
-    });
+    // Info window
+    infoWindow = new google.maps.InfoWindow();
 };
 
 // OpenWeather API call. Passes in viewModel context (self).
@@ -50,6 +27,9 @@ var weather = function(self) {
         },
         dataType: 'json',
         success: function(result) {
+
+            clearTimeout(self.apiTimeout);
+
             self.weatherData.temp(Math.round(result.main.temp) + 'F');
             self.weatherData.status(result.weather[0].main);
             self.weatherData.statusDesc(result.weather[0].description);
@@ -59,10 +39,12 @@ var weather = function(self) {
     };
 
     // Send request
+    self.apiTimeout;
     $.ajax(settings);
 };
 
 // Yelp API call. Passes is item to make call for.
+// TODO: Feature needs re-adding!
 var yelp = function(self, item) {
 
     // clear previous data
@@ -98,6 +80,8 @@ var yelp = function(self, item) {
         dataType: 'jsonp',
         success: function (results) {
             // Set new data values
+            clearTimeout(self.apiTimeout);
+
             self.yelpData.img(results.businesses[0].image_url);
             self.yelpData.stars(results.businesses[0].rating_img_url_small);
             self.yelpData.url(results.businesses[0].url);
@@ -105,8 +89,8 @@ var yelp = function(self, item) {
     };
 
 // Send AJAX query via jQuery library.
+    self.apiTimeout;
     $.ajax(settings);
-
 };
 
 
@@ -227,11 +211,27 @@ var markerData = [
 var viewModel = function() {
     var self = this;
 
+    self.error = ko.observable('');
+
+    // Menu controls
+    self.listOpen = ko.observable(false);
+    self.toggleList = ko.observable(function() {
+        if(self.listOpen() == true) {
+            self.listOpen(false);
+        } else {
+            self.listOpen(true);
+        }
+    });
+
     // Handle errors
     $(document).ajaxError(function( event, request, settings ) {
         self.error('ERROR: Failed to load data');
         console.log(request, settings.url);
     });
+
+    self.apiTimeout = setTimeout(function() {
+        self.error('ERROR: Failed to load data');
+    }, 5000);
 
     self.flightArray = ko.observableArray([]);
 
@@ -275,10 +275,16 @@ var viewModel = function() {
         url: ko.observable('')
     };
 
-    self.error = ko.observable('');
+    self.infoBlurb = ko.observable(false);
 
     // Info window controller
     self.openInfoWindow = function(item) {
+
+        // TODO: Add yelp feature
+        // yelp(self, item);
+
+        // Close the marker list
+        self.listOpen(false);
 
         // Animate marker for small period
         item.marker.setAnimation(google.maps.Animation.BOUNCE);
@@ -287,17 +293,18 @@ var viewModel = function() {
         }, 1500);
 
         self.selected(item); // set selected marker
-        yelp(self, item); // call Yelp API
+
+        var content = '<h5>' + self.selected().title().toString() + '</h5>' +
+            '<p>' + self.selected().blurb().toString() + '</p>';
+
+        infoWindow.setContent(content);
+
         infoWindow.open(map, item.marker);
     };
 
     self.filterString = ko.observable();
 
     self.filterMarkers = ko.computed(function() {
-
-        // Close info window and append to body to keep ko bindings intact when calling this search function
-        $("body").append($infoWindowContent);
-        infoWindow.close();
 
         // Clear out all markers when this function is called
         self.markerPins().forEach(function(item) {
@@ -342,6 +349,9 @@ var viewModel = function() {
             jsonpCallback: 'cb',
             success: function(result) {
 
+                // Clear timeout
+                clearTimeout(self.flightTimeout);
+
                 // Clear flight data and remove markers
                 for (var i = 0; i < self.flightArray().length; i++) {
                     self.flightArray()[i].setMap(null);
@@ -355,11 +365,15 @@ var viewModel = function() {
                         position: {lat: item.positions[0].lat, lng: item.positions[0].lon},
                         map: map,
                         icon: image
-                    }))
+                    }));
                 });
             }
         };
 
+        // I have fallen foul of the DNR rule but was having a headache with what I assume to be a scope issue...
+        self.flightTimeout = setTimeout(function() {
+            self.error('ERROR: Failed to load flight data');
+        }, 5000);
         $.ajax(settings);
     };
 
@@ -403,8 +417,6 @@ var Marker = function(title, lat, lng, blurb) {
 // When google maps has loaded kick things off
 var init = function() {
     initMap();
-
-
 
     ko.applyBindings(new viewModel());
 };
